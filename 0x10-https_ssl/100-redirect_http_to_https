@@ -42,7 +42,7 @@ frontend http
         default_backend web_servers
 
 frontend www-https
-        bind *:443 ssl crt /etc/letsencrypt/live/www.felixdowusu.tech/fullchain.pem
+        bind *:443 ssl crt bind *:443 ssl crt /etc/letsencrypt/live/www.felixdowusu.tech/fullchain2.pem key /etc/letsencrypt/live/www.felixdowusu.tech/privkey2.pem
         http-request set-header X-Forwarded-Proto https
         http-request redirect scheme https code 301 unless { ssl_fc }
         default_backend web_servers
