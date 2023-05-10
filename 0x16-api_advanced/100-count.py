@@ -39,7 +39,3 @@ def count_words(subreddit, word_list):
     if after:
         return count_words(subreddit, word_list)
     return count_all(hotlist, word_list)
-
-
-if __name__ == "__main__":
-    count_words(argv[1], argv[2].split(' '))
