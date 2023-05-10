@@ -1,19 +1,45 @@
 #!/usr/bin/python3
-""" Recursive function that queries the Reddit API
-    parses the title of all hot articles, and prints a sorted count"""
-import requests
-import sys
+# get subs
+from requests import get
+from sys import argv
+
+hotlist = []
 after = None
-count_dic = []
+
+
+def count_all(hotlist, word_list):
+    count_dic = {word.lower(): 0 for word in word_list}
+    for title in hotlist:
+        words = title.split(' ')
+        for word in words:
+            if count_dic.get(word) is not None:
+                count_dic[word] += 1
+
+    for key in sorted(count_dic, key=count_dic.get, reverse=True):
+        if count_dic.get(key):
+            for thing in word_list:
+                if key == thing.lower():
+                    print("{}: {}".format(thing, count_dic[key]))
 
 
 def count_words(subreddit, word_list):
-    """parses the title of all hot articles, and prints a sorted count of given
-    keywords (case-insensitive, delimited by spaces) """
+    global hotlist
     global after
-    global count_dic
-    headers = {'User-Agent': 'xica369'}
-    url = "https://www.reddit.com/r/{}/hot.json".format(subreddit)
-    parameters = {'after': after}
-    response = requests.get(url, headers=headers, allow_redirects=False,
-                            params=parameters)
+    """subs"""
+    head = {'User-Agent': 'Dan Kazam'}
+    if after:
+        count = get('https://www.reddit.com/r/{}/hot.json?after={}'.format(
+            subreddit, after), headers=head).json().get('data')
+    else:
+        count = get('https://www.reddit.com/r/{}/hot.json'.format(
+            subreddit), headers=head).json().get('data')
+    hotlist += [dic.get('data').get('title').lower()
+                for dic in count.get('children')]
+    after = count.get('after')
+    if after:
+        return count_words(subreddit, word_list)
+    return count_all(hotlist, word_list)
+
+
+if __name__ == "__main__":
+    count_words(argv[1], argv[2].split(' '))
