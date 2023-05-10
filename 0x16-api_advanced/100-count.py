@@ -5,22 +5,21 @@ import json
 import requests
 
 
-def count_words(subreddit, word_list, after="", count=[]):
-    """count all words"""
+def count_words(subreddit, word_list, after="", count=None):
+    """Count all words"""
 
     if after == "":
         count = [0] * len(word_list)
 
-    url = "https://www.reddit.com/r/{}/hot.json".format(subreddit)
-    request = requests.get(url,
-                           params={'after': after},
-                           allow_redirects=False,
-                           headers={'user-agent': 'bhalut'})
+    url = f"https://www.reddit.com/r/{subreddit}/hot.json"
+    headers = {'User-Agent': 'bhalut'}
+    params = {'after': after}
+    request = requests.get(url, params=params, headers=headers, allow_redirects=False)
 
     if request.status_code == 200:
         data = request.json()
 
-        for topic in (data['data']['children']):
+        for topic in data['data']['children']:
             for word in topic['data']['title'].split():
                 for i in range(len(word_list)):
                     if word_list[i].lower() == word.lower():
@@ -40,12 +39,8 @@ def count_words(subreddit, word_list, after="", count=[]):
                     if (count[j] > count[i] or
                             (word_list[i] > word_list[j] and
                              count[j] == count[i])):
-                        aux = count[i]
-                        count[i] = count[j]
-                        count[j] = aux
-                        aux = word_list[i]
-                        word_list[i] = word_list[j]
-                        word_list[j] = aux
+                        count[i], count[j] = count[j], count[i]
+                        word_list[i], word_list[j] = word_list[j], word_list[i]
 
             for i in range(len(word_list)):
                 if (count[i] > 0) and i not in save:
