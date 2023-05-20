@@ -1,16 +1,19 @@
 #!/usr/bin/env bash
 
-# Find the process ID of the Gunicorn master process
-MASTER_PID=$(pgrep gunicorn)
+# Script to gracefully restart Gunicorn
 
-if [[ -z $MASTER_PID ]]; then
-  echo "Gunicorn is not running."
-  exit 1
+# Get the process ID (PID) of the Gunicorn master process
+PID=$(cat /tmp/gunicorn.pid)
+
+# Send a SIGUSR2 signal to the master process to gracefully restart workers
+kill -USR2 "$PID"
+
+# Wait for the workers to finish processing requests
+sleep 5
+
+# Check if the workers have restarted successfully
+if pgrep -P "$PID" gunicorn >/dev/null; then
+    echo "Gunicorn has been gracefully restarted."
+else
+    echo "Failed to restart Gunicorn."
 fi
-
-echo "Reloading Gunicorn gracefully..."
-
-# Send a signal to the master process to gracefully reload the workers
-kill -HUP $MASTER_PID
-
-echo "Gunicorn reloaded gracefully."
